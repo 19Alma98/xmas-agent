@@ -21,10 +21,10 @@ class UserPreferences(BaseModel):
     """Model representing user preferences for Christmas menu."""
 
     number_of_guests: int = Field(..., ge=1)
-    has_vegetarian: bool = Field(default=False)
+    has_vegetarians: bool = Field(default=False)
     vegetarian_count: int = Field(default=0, ge=0)
     has_vegans: bool = Field(default=False)
-    vegans_count: int = Field(default=0, ge=0)
+    vegan_count: int = Field(default=0, ge=0)
     allergies: list[Allergy]
     custom_allergies: list[str]
     prefer_traditional: bool = Field(default=True)
@@ -38,9 +38,9 @@ class UserPreferences(BaseModel):
         requirements = []
         if self.has_vegans:
             requirements.append(
-                f"{self.vegans_count if self.vegans_count > 0 else 'some'} vegan(s)"
+                f"{self.vegan_count if self.vegan_count > 0 else 'some'} vegan(s)"
             )
-        if self.has_vegetarian:
+        if self.has_vegetarians:
             requirements.append(
                 f"{self.vegetarian_count if self.vegetarian_count > 0 else 'some'} vegetarian(s)"
             )
