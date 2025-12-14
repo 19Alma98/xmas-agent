@@ -181,10 +181,7 @@ class InfoCheckerAgent(Agent):
     Agent responsible for validating and extracting user preferences.
     Ensures all necessary information is collected before menu planning.
 
-    Uses datapizza-ai Memory for conversation context retention,
-    allowing iterative preference gathering across multiple interactions.
-
-    Supports both OpenAI and Ollama providers.
+    Uses Memory for conversation context retention, allowing iterative preference gathering across multiple interactions.
     """
 
     SYSTEM_PROMPT = """You are an expert Christmas menu planning assistant. Your role is to gather all the information needed to plan the perfect Christmas menu.
@@ -196,11 +193,11 @@ You need to collect the following information from the user:
 **REQUIRED (must have before proceeding):**
 - Number of guests (essential for portion planning)
 
-**IMPORTANT (should ask if not mentioned):**
+**IMPORTANT (must ask if not mentioned):**
 - Dietary restrictions: Are there vegetarian guests? How many? Are there vegan guests? How many?
 - Food allergies: Does anyone have allergies? (nuts, dairy, gluten, shellfish, etc.)
 
-**OPTIONAL (nice to have):**
+**OPTIONAL (should ask if not mentioned):**
 - Preference for traditional vs modern recipes
 - Time/difficulty constraints (easy, medium, hard recipes)
 - Budget level (low, medium, high)
@@ -258,7 +255,6 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
             api_key: OpenAI API key (not needed for Ollama)
             provider: LLM provider override ("openai" or "ollama")
         """
-        # Create client using factory (supports both OpenAI and Ollama)
         client = create_client(
             api_key=api_key,
             system_prompt=self.SYSTEM_PROMPT,
@@ -266,16 +262,9 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
             provider=provider,
         )
 
-        # Initialize memory for conversation context
         self._conversation_memory = Memory()
-
-        # Instance-level state for extraction results (replaces global variable)
         self._extraction_result_holder: dict = {"result": None}
-
-        # Create the finalize_extraction tool with captured instance state
-        self._finalize_extraction_tool = _create_finalize_extraction_tool(
-            self._extraction_result_holder
-        )
+        self._finalize_extraction_tool = _create_finalize_extraction_tool(self._extraction_result_holder)
 
         super().__init__(
             name="info_checker",
@@ -287,8 +276,8 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
                 self._finalize_extraction_tool,
             ],
             memory=self._conversation_memory,
-            max_steps=5,  # Limit execution steps
-            terminate_on_text=False,  # Don't stop on text, wait for finalize_extraction
+            max_steps=5,
+            terminate_on_text=False,
         )
 
     def _run_extraction(self, prompt: str, user_message: str) -> dict:
@@ -302,22 +291,14 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
         Returns:
             Dictionary with extraction results
         """
-        # Clear previous extraction result
         self._extraction_result_holder["result"] = None
 
-        # Run agent with memory context
         response = self.run(prompt, tool_choice="auto")
         response_text = response.text if hasattr(response, "text") else str(response)
 
-        # Update memory with this interaction
-        self._conversation_memory.add_turn(
-            TextBlock(content=user_message), role=ROLE.USER
-        )
-        self._conversation_memory.add_turn(
-            TextBlock(content=response_text), role=ROLE.ASSISTANT
-        )
+        self._conversation_memory.add_turn(TextBlock(content=user_message), role=ROLE.USER)
+        self._conversation_memory.add_turn(TextBlock(content=response_text), role=ROLE.ASSISTANT)
 
-        # Get the structured result from the finalize_extraction tool
         extraction_result = self._extraction_result_holder.get("result")
 
         if extraction_result:
@@ -326,7 +307,6 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
                 **extraction_result,
             }
 
-        # Fallback if agent didn't call finalize_extraction
         return {
             "raw_response": response_text,
             "is_complete": False,

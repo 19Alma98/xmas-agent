@@ -28,7 +28,7 @@ def test_extract_preferences_missing_guests():
 
 def test_agent_info_checker_should_correctly_extract_preferences():
     agent = InfoCheckerAgent()
-    request = 'I need a Christmas dinner menu for 8 people. Two guests are vegetarian and one has a nut allergy'
+    request = 'I need a Christmas dinner menu for 8 people. Two guests are vegetarian'
     result = agent.extract_preferences(request)
     
     
