@@ -20,13 +20,13 @@ class Allergy(str, Enum):
 class UserPreferences(BaseModel):
     """Model representing user preferences for Christmas menu."""
 
-    number_of_guests: int = Field(..., ge=1)
+    number_of_guests: int = Field(..., ge=0)
     has_vegetarians: bool = Field(default=False)
     vegetarian_count: int = Field(default=0, ge=0)
     has_vegans: bool = Field(default=False)
     vegan_count: int = Field(default=0, ge=0)
-    allergies: list[Allergy]
-    custom_allergies: list[str]
+    allergies: list[Allergy] = Field(default_factory=list)
+    custom_allergies: list[str] = Field(default_factory=list)
     prefer_traditional: bool = Field(default=True)
     max_difficulty: str = Field(default="medium")
     max_prep_time_minutes: int | None = Field(None)
@@ -46,7 +46,7 @@ class UserPreferences(BaseModel):
             )
         if self.allergies:
             requirements.append(
-                f"allergies: {', '.join([a.value for a in self.allergies])}"
+                f"allergies: {', '.join([a for a in self.allergies])}"
             )
         if self.custom_allergies:
             requirements.append(
