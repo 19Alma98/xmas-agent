@@ -9,6 +9,7 @@ from ..tools.recipe_search import (
     search_desserts,
     get_recipe_details,
 )
+from datapizza.tools.duckduckgo import DuckDuckGoSearchTool  # type: ignore
 
 TRADITIONAL_DISHES: dict[str, Any] = {
     "appetizer": [],
@@ -212,3 +213,72 @@ When searching:
 
 Output your recommendations with brief explanations for why each was chosen.
 Format your response clearly with the recipe names, descriptions, and why they were selected."""
+
+
+class RecipeResearchAgent(Agent):
+    """Agent for discovering new recipes from the web using DuckDuckGo search."""
+
+    SYSTEM_PROMPT = """You are a recipe research expert. Your role is to:
+
+1. Search the web for Christmas recipes when needed
+2. Find recipes that match specific dietary requirements
+3. Discover trending and popular Christmas dishes
+4. Find alternatives for common allergens
+
+When searching:
+- Be specific in your search queries
+- Look for recipes from reputable cooking sites
+- Consider regional Christmas traditions
+- Always verify dietary claims (vegan, gluten-free, etc.)
+
+Output clear recipe suggestions with names, brief descriptions, and source URLs."""
+
+    name = "recipe_researcher"
+
+    def __init__(self, api_key: str | None = None, provider: str | None = None):
+        """
+        Initialize the recipe research agent with DuckDuckGo search.
+
+        Args:
+            api_key: OpenAI API key (not needed for Ollama)
+            provider: LLM provider override ("openai" or "ollama")
+        """
+        client = create_client(
+            api_key=api_key,
+            system_prompt=self.SYSTEM_PROMPT,
+            temperature=0.7,
+            provider=provider,
+        )
+
+        super().__init__(
+            name="recipe_researcher",
+            client=client,
+            system_prompt=self.SYSTEM_PROMPT,
+            tools=[DuckDuckGoSearchTool()],
+            max_steps=5,
+            terminate_on_text=True,
+        )
+
+    def search_web_recipes(self, query: str, dietary_requirements: str = "") -> str:
+        """
+        Search the web for recipes matching the query.
+
+        Args:
+            query: Recipe search query
+            dietary_requirements: Optional dietary requirements to include
+
+        Returns:
+            Search results with recipe suggestions
+        """
+        search_prompt = f"""
+Search for Christmas recipes matching: {query}
+{f"Dietary requirements: {dietary_requirements}" if dietary_requirements else ""}
+
+Find 2-3 suitable recipes and provide:
+- Recipe name
+- Brief description
+- Key ingredients
+- Why it's a good choice
+"""
+        response = self.run(search_prompt, tool_choice="required_first")
+        return response.text if hasattr(response, "text") else str(response)
