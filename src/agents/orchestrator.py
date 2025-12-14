@@ -480,7 +480,9 @@ class ChristmasMenuOrchestrator:
         else:
             preferences = preferences_result.get("preferences", {})
 
-        logger.info(f"✅ Preferences: {preferences.get('number_of_guests', 'N/A')} guests")
+        logger.info(
+            f"✅ Preferences: {preferences.get('number_of_guests', 'N/A')} guests"
+        )
 
         # Step 2: Let menu creator handle everything via can_call()
         logger.info("\n🤖 Step 2: Menu Creator coordinating with recipe experts...")

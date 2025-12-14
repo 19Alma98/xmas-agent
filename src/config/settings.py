@@ -17,12 +17,18 @@ class Settings:
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    EMBEDDING_DIMENSIONS: int = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
 
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 
     TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.7"))
     MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "2000"))
+
+    QDRANT_HOST: str = os.getenv("QDRANT_HOST", "localhost")
+    QDRANT_PORT: int = int(os.getenv("QDRANT_PORT", "6333"))
+    QDRANT_LOCATION: str = os.getenv("QDRANT_LOCATION", ":memory:")
+    COLLECTION_NAME: str = os.getenv("COLLECTION_NAME", "christmas_recipes")
 
     RECIPE_CATEGORIES = ["appetizer", "main_dish", "second_plate", "dessert"]
     DIETARY_OPTIONS = ["vegan", "vegetarian", "gluten_free", "diary_free", "nut_free"]
