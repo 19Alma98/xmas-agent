@@ -11,10 +11,10 @@ Supports both OpenAI and Ollama providers.
 
 import json
 from typing import Optional
-from datapizza.agents import Agent  #type: ignore
-from datapizza.memory import Memory  #type: ignore
-from datapizza.tools import tool  #type: ignore
-from datapizza.type import ROLE, TextBlock  #type: ignore
+from datapizza.agents import Agent  # type: ignore
+from datapizza.memory import Memory  # type: ignore
+from datapizza.tools import tool  # type: ignore
+from datapizza.type import ROLE, TextBlock  # type: ignore
 
 from ..config import create_client
 from ..models.user_preferences import UserPreferences, Allergy
@@ -36,6 +36,11 @@ def validate_preferences(preferences_json: str) -> str:
     """
     try:
         data = json.loads(preferences_json)
+        # Normalize empty strings to empty lists for list fields
+        if data.get("allergies") == "":
+            data["allergies"] = []
+        if data.get("custom_allergies") == "":
+            data["custom_allergies"] = []
         preferences = UserPreferences.model_validate(data)
     except Exception as e:
         return json.dumps(
@@ -92,7 +97,6 @@ def create_preferences_object(
     if allergies:
         for allergy in allergies.split(","):
             allergy = allergy.strip().lower()
-            # Try to match with standard allergies
             try:
                 allergy_list.append(Allergy(allergy))
             except ValueError:
@@ -137,6 +141,7 @@ def _create_finalize_extraction_tool(result_holder: dict):
     @tool
     def finalize_extraction(
         is_complete: bool,
+        response_text: str = "",
         preferences_json: str = "",
         missing_info: str = "",
         questions: str = "",
@@ -147,6 +152,7 @@ def _create_finalize_extraction_tool(result_holder: dict):
 
         Args:
             is_complete: Whether all required information has been gathered
+            response_text: The friendly message to show to the user (include follow-up questions here if info is missing)
             preferences_json: JSON string of the preferences object (from create_preferences_object)
             missing_info: Comma-separated list of missing fields (if incomplete)
             questions: Questions to ask the user for missing info (if incomplete)
@@ -165,6 +171,7 @@ def _create_finalize_extraction_tool(result_holder: dict):
 
         result_holder["result"] = {
             "is_complete": is_complete,
+            "response_text": response_text,
             "preferences": preferences,
             "missing_info": [m.strip() for m in missing_info.split(",") if m.strip()],
             "questions": [q.strip() for q in questions.split("|") if q.strip()],
@@ -226,24 +233,22 @@ You need to collect the following information from the user:
 3. ALWAYS call finalize_extraction at the end:
    - is_complete=True only if you have: number_of_guests AND confirmed dietary restrictions/allergies
    - is_complete=False if any essential info is missing
+   - response_text: Your friendly message to the user (MUST include follow-up questions if info is missing!)
    - missing_info: comma-separated list of missing fields
    - questions: pipe-separated list of questions to ask the user
    - summary: what you know so far
-
-4. In your text response, ALWAYS include your follow-up questions to the user if information is missing!
 
 ## EXAMPLE INTERACTION
 
 User: "I need a Christmas menu"
 You should:
 - Call create_preferences_object with defaults
-- Call finalize_extraction with is_complete=False, missing_info="number_of_guests,dietary_restrictions,allergies"
-- In your response, ASK: "I'd be happy to help plan your Christmas menu! To get started, could you tell me:
-  1. How many guests are you expecting?
-  2. Are there any vegetarians or vegans in the group?
-  3. Does anyone have food allergies I should know about?"
+- Call finalize_extraction with:
+  - is_complete=False
+  - response_text="I'd be happy to help plan your Christmas menu! To get started, could you tell me:\n1. How many guests are you expecting?\n2. Are there any vegetarians or vegans in the group?\n3. Does anyone have food allergies I should know about?"
+  - missing_info="number_of_guests,dietary_restrictions,allergies"
 
-CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questions in your response if info is missing!"""
+CRITICAL: You MUST call finalize_extraction at the end with response_text containing your friendly message to the user!"""
 
     name = "info_checker"
 
@@ -258,13 +263,15 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
         client = create_client(
             api_key=api_key,
             system_prompt=self.SYSTEM_PROMPT,
-            temperature=0.7,
+            temperature=0.3,
             provider=provider,
         )
 
         self._conversation_memory = Memory()
         self._extraction_result_holder: dict = {"result": None}
-        self._finalize_extraction_tool = _create_finalize_extraction_tool(self._extraction_result_holder)
+        self._finalize_extraction_tool = _create_finalize_extraction_tool(
+            self._extraction_result_holder
+        )
 
         super().__init__(
             name="info_checker",
@@ -293,13 +300,20 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
         """
         self._extraction_result_holder["result"] = None
 
-        response = self.run(prompt, tool_choice="auto")
-        response_text = response.text if hasattr(response, "text") else str(response)
-
-        self._conversation_memory.add_turn(TextBlock(content=user_message), role=ROLE.USER)
-        self._conversation_memory.add_turn(TextBlock(content=response_text), role=ROLE.ASSISTANT)
+        self.run(prompt, tool_choice="auto")
 
         extraction_result = self._extraction_result_holder.get("result")
+
+        response_text = (
+            extraction_result.get("response_text", "") if extraction_result else ""
+        )
+
+        self._conversation_memory.add_turn(
+            TextBlock(content=user_message), role=ROLE.USER
+        )
+        self._conversation_memory.add_turn(
+            TextBlock(content=response_text), role=ROLE.ASSISTANT
+        )
 
         if extraction_result:
             return {
@@ -310,6 +324,7 @@ CRITICAL: You MUST call finalize_extraction at the end AND ask follow-up questio
         return {
             "raw_response": response_text,
             "is_complete": False,
+            "response_text": "",
             "preferences": None,
             "missing_info": [],
             "questions": [],
@@ -419,4 +434,3 @@ Remember: You need at minimum the number of guests, and should confirm dietary r
             return self._conversation_memory.json_dumps()
         except Exception:
             return "No memory content available"
-

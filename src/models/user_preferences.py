@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Allergy(str, Enum):
@@ -45,9 +45,7 @@ class UserPreferences(BaseModel):
                 f"{self.vegetarian_count if self.vegetarian_count > 0 else 'some'} vegetarian(s)"
             )
         if self.allergies:
-            requirements.append(
-                f"allergies: {', '.join([a for a in self.allergies])}"
-            )
+            requirements.append(f"allergies: {', '.join([a for a in self.allergies])}")
         if self.custom_allergies:
             requirements.append(
                 f"other allergies: {', '.join([a for a in self.custom_allergies])}"
@@ -60,5 +58,4 @@ class UserPreferences(BaseModel):
         allergens.extend(self.custom_allergies)
         return allergens
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)

@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RecipeCategory(str, Enum):
@@ -67,5 +67,4 @@ class Recipe(BaseModel):
             f"Ingredients: {', '.join(self.ingredients)}"
         )
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
