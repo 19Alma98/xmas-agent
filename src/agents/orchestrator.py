@@ -1,94 +1,19 @@
-from typing import Generator, AsyncGenerator
+from typing import Any, Generator, AsyncGenerator
 
-from datapizza.agents import Agent
-# from datapizza.tools.duckduckgo import DuckDuckGoSearchTool
+from loguru import logger
 
-from ..config import settings, create_client, get_provider_name, get_model_name
+from ..config import settings, get_provider_name, get_model_name
 from ..agents.info_checker import InfoCheckerAgent
 from ..agents.recipe_agents import (
     AppetizerAgent,
     MainDishAgent,
+    RecipeResearchAgent,
     SecondPlateAgent,
     DessertAgent,
 )
 from ..agents.menu_creator import MenuCreatorAgent
-from database.vector_store import RecipeVectorStore
-from database.recipe_loader import RecipeLoader
-
-
-class RecipeResearchAgent(Agent):
-    """
-    Agent for discovering new recipes from the web using DuckDuckGo search.
-    Useful when the local database doesn't have suitable recipes.
-
-    Supports both OpenAI and Ollama providers.
-    """
-
-    SYSTEM_PROMPT = """You are a recipe research expert. Your role is to:
-
-1. Search the web for Christmas recipes when needed
-2. Find recipes that match specific dietary requirements
-3. Discover trending and popular Christmas dishes
-4. Find alternatives for common allergens
-
-When searching:
-- Be specific in your search queries
-- Look for recipes from reputable cooking sites
-- Consider regional Christmas traditions
-- Always verify dietary claims (vegan, gluten-free, etc.)
-
-Output clear recipe suggestions with names, brief descriptions, and source URLs."""
-
-    name = "recipe_researcher"
-
-    def __init__(self, api_key: Optional[str] = None, provider: Optional[str] = None):
-        """
-        Initialize the recipe research agent with DuckDuckGo search.
-
-        Args:
-            api_key: OpenAI API key (not needed for Ollama)
-            provider: LLM provider override ("openai" or "ollama")
-        """
-        # Create client using factory (supports both OpenAI and Ollama)
-        client = create_client(
-            api_key=api_key,
-            system_prompt=self.SYSTEM_PROMPT,
-            temperature=0.7,
-            provider=provider,
-        )
-
-        super().__init__(
-            name="recipe_researcher",
-            client=client,
-            system_prompt=self.SYSTEM_PROMPT,
-            tools=[DuckDuckGoSearchTool()],
-            max_steps=5,
-            terminate_on_text=True,
-        )
-
-    def search_web_recipes(self, query: str, dietary_requirements: str = "") -> str:
-        """
-        Search the web for recipes matching the query.
-
-        Args:
-            query: Recipe search query
-            dietary_requirements: Optional dietary requirements to include
-
-        Returns:
-            Search results with recipe suggestions
-        """
-        search_prompt = f"""
-Search for Christmas recipes matching: {query}
-{f"Dietary requirements: {dietary_requirements}" if dietary_requirements else ""}
-
-Find 2-3 suitable recipes and provide:
-- Recipe name
-- Brief description
-- Key ingredients
-- Why it's a good choice
-"""
-        response = self.run(search_prompt, tool_choice="required_first")
-        return response.text if hasattr(response, "text") else str(response)
+from ..database.vector_store import RecipeVectorStore
+from ..database.recipe_loader import RecipeLoader
 
 
 class ChristmasMenuOrchestrator:
@@ -113,12 +38,12 @@ class ChristmasMenuOrchestrator:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        provider: Optional[str] = None,
+        api_key: str | None = None,
+        provider: str | None = None,
         initialize_db: bool = True,
     ):
         """
-        Initialize the orchestrator with all agents using datapizza-ai features.
+        Initialize the orchestrator with all agents.
 
         Args:
             api_key: OpenAI API key (not needed for Ollama)
@@ -128,7 +53,6 @@ class ChristmasMenuOrchestrator:
         self.api_key = api_key
         self.provider = provider or settings.LLM_PROVIDER
 
-        # Initialize all agents with datapizza-ai features
         self.info_checker = InfoCheckerAgent(
             api_key=self.api_key, provider=self.provider
         )
@@ -143,28 +67,24 @@ class ChristmasMenuOrchestrator:
         )
         self.dessert_agent = DessertAgent(api_key=self.api_key, provider=self.provider)
 
-        # Recipe research agent with DuckDuckGo search
         self.recipe_researcher = RecipeResearchAgent(
             api_key=self.api_key, provider=self.provider
         )
 
-        # Menu creator with can_call() support
         self.menu_creator = MenuCreatorAgent(
             api_key=self.api_key, provider=self.provider
         )
 
-        # Connect recipe agents to menu creator via can_call()
         self.menu_creator.connect_recipe_agents(
             [
                 self.appetizer_agent,
                 self.main_dish_agent,
                 self.second_plate_agent,
                 self.dessert_agent,
-                self.recipe_researcher,  # Can also call web search agent
+                self.recipe_researcher,
             ]
         )
 
-        # Initialize vector store
         self.vector_store = RecipeVectorStore()
 
         if initialize_db:
@@ -173,16 +93,16 @@ class ChristmasMenuOrchestrator:
     def _ensure_recipes_loaded(self) -> None:
         """Ensure the vector database has recipes loaded."""
         if self.vector_store.count_recipes() == 0:
-            print("📚 Loading sample recipes into database...")
+            logger.info("📚 Loading sample recipes into database...")
             loader = RecipeLoader(self.vector_store)
             count = loader.load_sample_recipes()
-            print(f"✅ Loaded {count} sample recipes")
+            logger.info(f"✅ Loaded {count} sample recipes")
 
     def get_provider_info(self) -> str:
         """Get information about the current LLM provider."""
         return f"{get_provider_name()} ({get_model_name()})"
 
-    def run(self, user_request: str, interactive: bool = False) -> Dict[str, Any]:
+    def run(self, user_request: str, interactive: bool = False) -> dict[str, Any]:
         """
         Run the complete menu planning pipeline.
 
@@ -198,11 +118,11 @@ class ChristmasMenuOrchestrator:
                 - agent_outputs: Individual outputs from each agent
                 - error: Error message (if failed)
         """
-        print("\n🎄 Christmas Menu Planner 🎄")
-        print(f"Using: {self.get_provider_info()}")
-        print("=" * 50)
+        logger.info("\n🎄 Christmas Menu Planner 🎄")
+        logger.info(f"Using: {self.get_provider_info()}")
+        logger.info("=" * 50)
 
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "menu": None,
             "preferences": None,
@@ -211,25 +131,22 @@ class ChristmasMenuOrchestrator:
             "provider": self.get_provider_info(),
         }
 
-        # Step 1: Extract and validate user preferences (with Memory)
-        print("\n📋 Step 1: Analyzing your requirements...")
+        logger.info("\n📋 Step 1: Analyzing your requirements...")
         preferences_result = self.info_checker.extract_preferences(user_request)
         result["agent_outputs"]["info_checker"] = preferences_result
 
         if not preferences_result.get("is_complete"):
             if interactive:
-                # In interactive mode, we could ask for more info
-                print("⚠️  Some information is missing. Please provide:")
+                logger.warning("⚠️  Some information is missing. Please provide:")
                 questions = self.info_checker.ask_missing_info(
                     preferences_result.get("preferences", {}),
                     preferences_result.get("missing_info", []),
                 )
-                print(questions)
+                logger.info(questions)
                 result["error"] = "Missing required information"
                 return result
             else:
-                # Use defaults for missing info
-                print("⚠️  Using defaults for missing information")
+                logger.warning("⚠️  Using defaults for missing information")
                 preferences = preferences_result.get("preferences") or {
                     "number_of_guests": 6,
                     "has_vegetarians": False,
@@ -245,32 +162,32 @@ class ChristmasMenuOrchestrator:
             preferences = preferences_result.get("preferences", {})
 
         result["preferences"] = preferences
-        print(
+        logger.info(
             f"✅ Preferences extracted: {preferences.get('number_of_guests', 'N/A')} guests"
         )
 
         # Step 2: Search for recipes using specialized agents
-        print("\n🔍 Step 2: Searching for recipes...")
-        print("   • Searching appetizers...")
+        logger.info("\n🔍 Step 2: Searching for recipes...")
+        logger.info("   • Searching appetizers...")
         appetizer_result = self.appetizer_agent.search(preferences)
         result["agent_outputs"]["appetizer"] = appetizer_result
 
-        print("   • Searching main dishes...")
+        logger.info("   • Searching main dishes...")
         main_dish_result = self.main_dish_agent.search(preferences)
         result["agent_outputs"]["main_dish"] = main_dish_result
 
-        print("   • Searching second plates...")
+        logger.info("   • Searching second plates...")
         second_plate_result = self.second_plate_agent.search(preferences)
         result["agent_outputs"]["second_plate"] = second_plate_result
 
-        print("   • Searching desserts...")
+        logger.info("   • Searching desserts...")
         dessert_result = self.dessert_agent.search(preferences)
         result["agent_outputs"]["dessert"] = dessert_result
 
-        print("✅ Recipe search complete!")
+        logger.info("✅ Recipe search complete!")
 
         # Step 3: Create the final menu using planning_interval
-        print("\n📝 Step 3: Creating your personalized menu...")
+        logger.info("\n📝 Step 3: Creating your personalized menu...")
         menu_result = self.menu_creator.create_menu(
             preferences=preferences,
             appetizer_suggestions=appetizer_result.get("raw_response", ""),
@@ -283,12 +200,12 @@ class ChristmasMenuOrchestrator:
         result["menu"] = menu_result.get("formatted_menu", "")
         result["success"] = True
 
-        print("✅ Menu created successfully!")
-        print("\n" + "=" * 50)
+        logger.info("✅ Menu created successfully!")
+        logger.info("\n" + "=" * 50)
 
         return result
 
-    def run_streaming(self, user_request: str) -> Generator[Dict[str, Any], None, None]:
+    def run_streaming(self, user_request: str) -> Generator[dict[str, Any], None, None]:
         """
         Run the pipeline with streaming progress updates.
         Uses stream_invoke() for real-time feedback.
@@ -385,7 +302,7 @@ class ChristmasMenuOrchestrator:
             "preferences": preferences,
         }
 
-    async def run_async(self, user_request: str) -> Dict[str, Any]:
+    async def run_async(self, user_request: str) -> dict[str, Any]:
         """
         Run the pipeline asynchronously using true async execution.
 
@@ -395,7 +312,7 @@ class ChristmasMenuOrchestrator:
         Returns:
             Same as run()
         """
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "menu": None,
             "preferences": None,
@@ -458,7 +375,7 @@ class ChristmasMenuOrchestrator:
 
     async def run_async_streaming(
         self, user_request: str
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+    ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Run the pipeline with async streaming using a_stream_invoke().
 
@@ -528,7 +445,7 @@ class ChristmasMenuOrchestrator:
 
         yield {"type": "complete", "menu": final_menu, "preferences": preferences}
 
-    def run_with_native_agents(self, user_request: str) -> Dict[str, Any]:
+    def run_with_native_agents(self, user_request: str) -> dict[str, Any]:
         """
         Run the pipeline using native can_call() multi-agent collaboration.
         The menu creator directly calls recipe agents as tools.
@@ -539,13 +456,13 @@ class ChristmasMenuOrchestrator:
         Returns:
             Dictionary with menu and metadata
         """
-        print(
+        logger.info(
             f"\n🎄 Christmas Menu Planner (Native Multi-Agent - {self.get_provider_info()}) 🎄"
         )
-        print("=" * 50)
+        logger.info("=" * 50)
 
         # Step 1: Extract preferences
-        print("\n📋 Step 1: Analyzing your requirements...")
+        logger.info("\n📋 Step 1: Analyzing your requirements...")
         preferences_result = self.info_checker.extract_preferences(user_request)
 
         if not preferences_result.get("is_complete"):
@@ -563,14 +480,14 @@ class ChristmasMenuOrchestrator:
         else:
             preferences = preferences_result.get("preferences", {})
 
-        print(f"✅ Preferences: {preferences.get('number_of_guests', 'N/A')} guests")
+        logger.info(f"✅ Preferences: {preferences.get('number_of_guests', 'N/A')} guests")
 
         # Step 2: Let menu creator handle everything via can_call()
-        print("\n🤖 Step 2: Menu Creator coordinating with recipe experts...")
+        logger.info("\n🤖 Step 2: Menu Creator coordinating with recipe experts...")
         menu_result = self.menu_creator.create_menu_with_agents(preferences)
 
-        print("✅ Menu created successfully!")
-        print("\n" + "=" * 50)
+        logger.info("✅ Menu created successfully!")
+        logger.info("\n" + "=" * 50)
 
         return {
             "success": True,
@@ -596,7 +513,7 @@ class ChristmasMenuOrchestrator:
         """Get the number of recipes in the database."""
         return self.vector_store.count_recipes()
 
-    def reload_recipes(self, json_file: Optional[str] = None) -> int:
+    def reload_recipes(self, json_file: str | None = None) -> int:
         """
         Reload recipes into the database.
 
@@ -620,8 +537,8 @@ class ChristmasMenuOrchestrator:
 
 
 def create_orchestrator(
-    api_key: Optional[str] = None,
-    provider: Optional[str] = None,
+    api_key: str | None = None,
+    provider: str | None = None,
 ) -> ChristmasMenuOrchestrator:
     """
     Factory function to create an orchestrator instance.

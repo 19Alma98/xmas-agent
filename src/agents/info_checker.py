@@ -10,7 +10,6 @@ Supports both OpenAI and Ollama providers.
 """
 
 import json
-from typing import Optional
 from datapizza.agents import Agent  # type: ignore
 from datapizza.memory import Memory  # type: ignore
 from datapizza.tools import tool  # type: ignore
@@ -69,8 +68,8 @@ def create_preferences_object(
     allergies: str = "",
     prefer_traditional: bool = True,
     max_difficulty: str = "medium",
-    max_prep_time_minutes: Optional[int] = None,
-    max_cook_time_minutes: Optional[int] = None,
+    max_prep_time_minutes: int | None = None,
+    max_cook_time_minutes: int | None = None,
     additional_notes: str = "",
 ) -> str:
     """
@@ -252,7 +251,7 @@ CRITICAL: You MUST call finalize_extraction at the end with response_text contai
 
     name = "info_checker"
 
-    def __init__(self, api_key: Optional[str] = None, provider: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, provider: str | None = None):
         """
         Initialize the Info Checker Agent with Memory support.
 

@@ -1,12 +1,11 @@
-from typing import List, Optional
 from datapizza.tools import tool  # type: ignore
 
-from database.vector_store import RecipeVectorStore
+from ..database.vector_store import RecipeVectorStore
 from ..models.recipe import Recipe, RecipeCategory
 
 
 # Global vector store instance (initialized lazily)
-_vector_store: Optional[RecipeVectorStore] = None
+_vector_store: RecipeVectorStore | None = None
 
 
 def get_vector_store() -> RecipeVectorStore:
@@ -23,7 +22,7 @@ def set_vector_store(store: RecipeVectorStore) -> None:
     _vector_store = store
 
 
-def _format_recipes_for_agent(recipes: List[Recipe]) -> str:
+def _format_recipes_for_agent(recipes: list[Recipe]) -> str:
     """Format recipes list as a string for agent consumption."""
     if not recipes:
         return "No recipes found matching the criteria."
@@ -53,7 +52,7 @@ def search_appetizers(
     is_gluten_free: bool = False,
     is_dairy_free: bool = False,
     is_nut_free: bool = False,
-    max_prep_time: int = None,
+    max_prep_time: int | None = None,
     prefer_traditional: bool = False,
     n_results: int = 3,
 ) -> str:
@@ -98,7 +97,7 @@ def search_main_dishes(
     is_gluten_free: bool = False,
     is_dairy_free: bool = False,
     is_nut_free: bool = False,
-    max_prep_time: int = None,
+    max_prep_time: int | None = None,
     prefer_traditional: bool = False,
     n_results: int = 3,
 ) -> str:
@@ -143,7 +142,7 @@ def search_second_plates(
     is_gluten_free: bool = False,
     is_dairy_free: bool = False,
     is_nut_free: bool = False,
-    max_prep_time: int = None,
+    max_prep_time: int | None = None,
     prefer_traditional: bool = False,
     n_results: int = 3,
 ) -> str:
@@ -189,7 +188,7 @@ def search_desserts(
     is_gluten_free: bool = False,
     is_dairy_free: bool = False,
     is_nut_free: bool = False,
-    max_prep_time: int = None,
+    max_prep_time: int | None = None,
     prefer_traditional: bool = False,
     n_results: int = 3,
 ) -> str:
