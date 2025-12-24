@@ -56,13 +56,13 @@ class Recipe(BaseModel):
 
     def to_search_text(self) -> str:
         dietary_text = (
-            ", ".join(tag.value for tag in self.dietary_tags)
+            ", ".join(tag for tag in self.dietary_tags)
             if self.dietary_tags
             else "no special diet"
         )
         return (
             f"{self.name}. {self.description}. "
-            f"Category: {self.category.value}. "
+            f"Category: {self.category}. "
             f"Diet: {dietary_text}. "
             f"Ingredients: {', '.join(self.ingredients)}"
         )
