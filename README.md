@@ -76,8 +76,9 @@ datapizza-ai/
 │   └── settings.py          # Configuration settings
 ├── database/
 │   ├── __init__.py
-│   ├── vector_store.py      # ChromaDB vector store
+│   ├── vector_store.py      # Qdrant vector store (via datapizza)
 │   └── recipe_loader.py     # Recipe data loader
+├── docker-compose.yml       # Qdrant service configuration
 ├── models/
 │   ├── __init__.py
 │   ├── recipe.py            # Recipe model
@@ -107,13 +108,30 @@ datapizza-ai/
 
 3. **Install dependencies**:
    ```bash
-   pip install -r requirements.txt
+   uv sync  # or pip install -r requirements.txt
    ```
 
 4. **Set up environment variables**:
    ```bash
    # Create .env file
    echo "OPENAI_API_KEY=your-api-key-here" > .env
+   ```
+   
+   Optional Qdrant configuration (docker-compose reads from .env):
+   ```bash
+   # Ports for Qdrant service (defaults: 6333 for REST, 6334 for gRPC)
+   QDRANT_PORT=6333
+   QDRANT_GRPC_PORT=6334
+   
+   # Application connection settings
+   QDRANT_HOST=localhost  # Default, connects to docker-compose service
+   QDRANT_LOCATION=:memory:  # Use in-memory mode instead of Docker (for testing)
+   COLLECTION_NAME=christmas_recipes
+   ```
+
+5. **Start Qdrant vector database**:
+   ```bash
+   docker-compose up -d
    ```
 
 ## 📖 Usage
@@ -297,11 +315,26 @@ Edit `config/settings.py` or use environment variables:
 - `qwen2.5:7b` - Good for instructions
 - `gemma2:9b` - Good for chat
 
+### Qdrant Vector Store Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `QDRANT_HOST` | `localhost` | Qdrant server host (empty for in-memory mode) |
+| `QDRANT_PORT` | `6333` | Qdrant server REST API port (also used by docker-compose) |
+| `QDRANT_GRPC_PORT` | `6334` | Qdrant gRPC port (used by docker-compose) |
+| `QDRANT_LOCATION` | `:memory:` | In-memory or file path (used when host is empty) |
+| `COLLECTION_NAME` | `christmas_recipes` | Vector collection name |
+| `EMBEDDING_MODEL` | `text-embedding-3-small` | OpenAI embedding model |
+| `EMBEDDING_DIMENSIONS` | `1536` | Embedding vector dimensions |
+
+**Note**: 
+- Start Qdrant with `docker-compose up -d` before running the application
+- The `docker-compose.yml` automatically reads `QDRANT_PORT` and `QDRANT_GRPC_PORT` from your `.env` file
+
 ### Other Settings
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CHROMA_PERSIST_DIR` | `./data/chroma_db` | Vector DB storage path |
 | `TEMPERATURE` | `0.7` | Agent creativity level |
 
 ### Using Ollama
