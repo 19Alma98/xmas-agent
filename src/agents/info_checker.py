@@ -36,9 +36,9 @@ def validate_preferences(preferences_json: str) -> str:
     try:
         data = json.loads(preferences_json)
         # Normalize empty strings to empty lists for list fields
-        if data.get("allergies") == "":
+        if data.get("allergies") == "" or data.get("custom_allergies") is None:
             data["allergies"] = []
-        if data.get("custom_allergies") == "":
+        if data.get("custom_allergies") == "" or data.get("custom_allergies") is None:
             data["custom_allergies"] = []
         preferences = UserPreferences.model_validate(data)
     except Exception as e:
