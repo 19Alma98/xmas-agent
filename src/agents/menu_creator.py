@@ -13,8 +13,8 @@ def format_final_menu(
     second_plates: str,
     desserts: str,
     number_of_guests: int,
-    preparation_notes: str = "",
-    shopping_tips: str = "",
+    preparation_notes: str,
+    shopping_tips: str,
 ) -> str:
     """
     Format the final Christmas menu in a beautiful presentation format.
@@ -180,9 +180,21 @@ Plan your next steps to complete the menu creation."""
 
         has_vegans = preferences.get("has_vegans", False)
         has_vegetarians = preferences.get("has_vegetarians", False)
-        allergens = preferences.get("allergies", []) + preferences.get(
-            "custom_allergies", []
-        )
+        allergies = preferences.get("allergies", [])
+        custom_allergies = preferences.get("custom_allergies", [])
+        if isinstance(allergies, str):
+            if not isinstance(custom_allergies, str):
+                if isinstance(custom_allergies, list):
+                    custom_allergies = ', '.join(custom_allergies)
+                else: 
+                    custom_allergies = ""
+        elif isinstance(allergies, list):
+            if not isinstance(custom_allergies, list):
+                if isinstance(custom_allergies, str):
+                    custom_allergies = [custom_allergies]
+                else: 
+                    custom_allergies = []
+        allergens = allergies + custom_allergies
 
         return {
             "number_of_guests": number_of_guests,
