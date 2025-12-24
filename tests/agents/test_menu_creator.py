@@ -22,7 +22,7 @@ def test_menu_creator_initialization_with_recipe_agents():
 
     recipe_agents = [AppetizerAgent(), MainDishAgent()]
     agent = MenuCreatorAgent(recipe_agents=recipe_agents)
-    
+
     assert agent.name == "menu_creator"
     assert agent is not None
 
@@ -48,16 +48,16 @@ def test_menu_creator_extract_preferences_complete():
         "allergies": ["gluten", "nuts"],
         "custom_allergies": ["peanuts"],
     }
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert isinstance(result, dict)
-    
+
     assert "number_of_guests" in result
     assert "has_vegans" in result
     assert "has_vegetarians" in result
     assert "allergens" in result
-    
+
     assert result["number_of_guests"] == 8
     assert result["has_vegans"] is True
     assert result["has_vegetarians"] is False
@@ -74,9 +74,9 @@ def test_menu_creator_extract_preferences_with_defaults():
     preferences = {
         "number_of_guests": 4,
     }
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert result["number_of_guests"] == 4
     assert result["has_vegans"] is False
     assert result["has_vegetarians"] is False
@@ -196,9 +196,9 @@ def test_format_final_menu_tool_type_signature():
         desserts="Dessert",
         number_of_guests=5,
     )
-    
+
     assert isinstance(menu, str)
-    
+
     menu_with_optional = format_final_menu(
         title="Test",
         appetizers="App",
@@ -209,7 +209,7 @@ def test_format_final_menu_tool_type_signature():
         preparation_notes="Notes",
         shopping_tips="Tips",
     )
-    
+
     assert isinstance(menu_with_optional, str)
     assert "Notes" in menu_with_optional
     assert "Tips" in menu_with_optional
@@ -251,18 +251,18 @@ def test_menu_creator_connect_recipe_agents():
 def test_menu_creator_connect_recipe_agents_empty_list():
     """Test that connect_recipe_agents handles empty list."""
     agent = MenuCreatorAgent()
-    
+
     agent.connect_recipe_agents([])
     assert agent is not None
 
 
-@patch.object(MenuCreatorAgent, 'run')
+@patch.object(MenuCreatorAgent, "run")
 def test_create_menu_return_type_and_structure(mock_run):
     """Test that create_menu returns correct type and structure."""
     mock_response = Mock()
     mock_response.text = "Mock menu response"
     mock_run.return_value = mock_response
-    
+
     agent = MenuCreatorAgent()
     preferences = {
         "number_of_guests": 6,
@@ -270,7 +270,7 @@ def test_create_menu_return_type_and_structure(mock_run):
         "has_vegetarians": False,
         "allergies": ["gluten"],
     }
-    
+
     result = agent.create_menu(
         preferences=preferences,
         appetizer_suggestions="Appetizer suggestions",
@@ -278,7 +278,7 @@ def test_create_menu_return_type_and_structure(mock_run):
         second_plate_suggestions="Second plate suggestions",
         dessert_suggestions="Dessert suggestions",
     )
-    
+
     assert isinstance(result, dict)
     assert "formatted_menu" in result
     assert "number_of_guests" in result
@@ -300,18 +300,18 @@ def test_create_menu_return_type_and_structure(mock_run):
     mock_run.assert_called_once()
 
 
-@patch.object(MenuCreatorAgent, 'run')
+@patch.object(MenuCreatorAgent, "run")
 def test_create_menu_calls_build_prompt(mock_run):
     """Test that create_menu calls _build_menu_prompt correctly."""
     mock_response = Mock()
     mock_response.text = "Menu"
     mock_run.return_value = mock_response
-    
+
     agent = MenuCreatorAgent()
     preferences = {
         "number_of_guests": 4,
     }
-    
+
     agent.create_menu(
         preferences=preferences,
         appetizer_suggestions="A",
@@ -319,7 +319,7 @@ def test_create_menu_calls_build_prompt(mock_run):
         second_plate_suggestions="S",
         dessert_suggestions="D",
     )
-    
+
     call_args = mock_run.call_args
     assert call_args is not None
     prompt = call_args[0][0]
@@ -327,13 +327,13 @@ def test_create_menu_calls_build_prompt(mock_run):
     assert "A" in prompt or "M" in prompt or "S" in prompt or "D" in prompt
 
 
-@patch.object(MenuCreatorAgent, 'run')
+@patch.object(MenuCreatorAgent, "run")
 def test_create_menu_with_agents_return_structure(mock_run):
     """Test that create_menu_with_agents returns correct structure."""
     mock_response = Mock()
     mock_response.text = "Menu from agents"
     mock_run.return_value = mock_response
-    
+
     agent = MenuCreatorAgent()
     preferences = {
         "number_of_guests": 8,
@@ -341,9 +341,9 @@ def test_create_menu_with_agents_return_structure(mock_run):
         "has_vegetarians": True,
         "allergies": [],
     }
-    
+
     result = agent.create_menu_with_agents(preferences)
-    
+
     assert isinstance(result, dict)
     assert "formatted_menu" in result
     assert "number_of_guests" in result

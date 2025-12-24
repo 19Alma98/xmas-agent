@@ -37,7 +37,10 @@ def test_main_dish_agent_is_correctly_initialized():
     assert agent.RECOMMENDED_COUNT == 2
     assert agent.SYSTEM_PROMPT is not None
     assert isinstance(agent.SYSTEM_PROMPT, str)
-    assert "main dish" in agent.SYSTEM_PROMPT.lower() or "primo" in agent.SYSTEM_PROMPT.lower()
+    assert (
+        "main dish" in agent.SYSTEM_PROMPT.lower()
+        or "primo" in agent.SYSTEM_PROMPT.lower()
+    )
 
 
 def test_second_plate_agent_is_correctly_initialized():
@@ -49,7 +52,10 @@ def test_second_plate_agent_is_correctly_initialized():
     assert agent.RECOMMENDED_COUNT == 2
     assert agent.SYSTEM_PROMPT is not None
     assert isinstance(agent.SYSTEM_PROMPT, str)
-    assert "second" in agent.SYSTEM_PROMPT.lower() or "secondo" in agent.SYSTEM_PROMPT.lower()
+    assert (
+        "second" in agent.SYSTEM_PROMPT.lower()
+        or "secondo" in agent.SYSTEM_PROMPT.lower()
+    )
 
 
 def test_dessert_agent_is_correctly_initialized():
@@ -86,9 +92,9 @@ def test_base_recipe_agent_extract_preferences():
         "vegan_count": 2,
         "vegetarian_count": 0,
     }
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert isinstance(result, dict)
     assert "has_vegans" in result
     assert "has_vegetarians" in result
@@ -118,9 +124,9 @@ def test_base_recipe_agent_extract_preferences_defaults():
     """Test that _extract_preferences uses defaults correctly."""
     agent = MainDishAgent()
     preferences = {}
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert isinstance(result, dict)
     assert result["has_vegans"] is False
     assert result["has_vegetarians"] is False
@@ -140,9 +146,9 @@ def test_base_recipe_agent_extract_preferences_combines_allergies():
         "allergies": ["gluten", "nuts"],
         "custom_allergies": ["peanuts", "soy"],
     }
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert isinstance(result["allergens"], list)
     assert len(result["allergens"]) == 4
     assert "gluten" in result["allergens"]
@@ -158,9 +164,9 @@ def test_base_recipe_agent_extract_preferences_empty_allergies():
         "allergies": [],
         "custom_allergies": [],
     }
-    
+
     result = agent._extract_preferences(preferences)
-    
+
     assert isinstance(result["allergens"], list)
     assert len(result["allergens"]) == 0
 
@@ -177,9 +183,9 @@ def test_base_recipe_agent_build_prompt():
         "vegan_count": 2,
         "vegetarian_count": 0,
     }
-    
+
     prompt = agent._build_prompt(prefs, context="Test context")
-    
+
     assert isinstance(prompt, str)
     assert len(prompt) > 0
     assert "8" in prompt
@@ -203,9 +209,9 @@ def test_base_recipe_agent_build_prompt_without_context():
         "vegan_count": 0,
         "vegetarian_count": 0,
     }
-    
+
     prompt = agent._build_prompt(prefs)
-    
+
     assert isinstance(prompt, str)
     assert len(prompt) > 0
     assert "4" in prompt
@@ -225,32 +231,32 @@ def test_base_recipe_agent_build_prompt_with_traditional_options():
         "vegan_count": 0,
         "vegetarian_count": 0,
     }
-    
+
     prompt = agent._build_prompt(prefs)
-    
+
     assert isinstance(prompt, str)
     assert "traditional" in prompt.lower()
 
 
-@patch.object(RecipeResearchAgent, 'run')
+@patch.object(RecipeResearchAgent, "run")
 def test_recipe_research_agent_search_web_recipes(mock_run):
     """Test that search_web_recipes method exists and returns correct type."""
     mock_response = Mock()
     mock_response.text = "Search results for recipes"
     mock_run.return_value = mock_response
-    
+
     agent = RecipeResearchAgent()
-    
+
     assert hasattr(agent, "search_web_recipes")
     assert callable(agent.search_web_recipes)
-    
+
     result = agent.search_web_recipes("Christmas cookies", "vegan")
-    
+
     assert isinstance(result, str)
     assert len(result) > 0
     assert result == "Search results for recipes"
     mock_run.assert_called_once()
-    
+
     call_args = mock_run.call_args
     assert call_args is not None
     prompt = call_args[0][0]
@@ -259,20 +265,20 @@ def test_recipe_research_agent_search_web_recipes(mock_run):
     assert "vegan" in prompt
 
 
-@patch.object(RecipeResearchAgent, 'run')
+@patch.object(RecipeResearchAgent, "run")
 def test_recipe_research_agent_search_web_recipes_without_dietary(mock_run):
     """Test that search_web_recipes works without dietary requirements."""
     mock_response = Mock()
     mock_response.text = "Search results"
     mock_run.return_value = mock_response
-    
+
     agent = RecipeResearchAgent()
-    
+
     result = agent.search_web_recipes("Christmas dinner")
-    
+
     assert isinstance(result, str)
     mock_run.assert_called_once()
-    
+
     call_args = mock_run.call_args
     prompt = call_args[0][0]
     assert "Christmas dinner" in prompt
@@ -282,7 +288,7 @@ def test_base_recipe_agent_get_tools():
     """Test that _get_tools returns the correct tools."""
     agent = AppetizerAgent()
     tools = agent._get_tools()
-    
+
     assert isinstance(tools, list)
     assert len(tools) > 0
     assert tools == agent.TOOLS
@@ -293,11 +299,11 @@ def test_base_recipe_agent_get_tools_different_agents():
     appetizer_agent = AppetizerAgent()
     main_dish_agent = MainDishAgent()
     dessert_agent = DessertAgent()
-    
+
     appetizer_tools = appetizer_agent._get_tools()
     main_dish_tools = main_dish_agent._get_tools()
     dessert_tools = dessert_agent._get_tools()
-    
+
     assert isinstance(appetizer_tools, list)
     assert isinstance(main_dish_tools, list)
     assert isinstance(dessert_tools, list)
@@ -309,18 +315,18 @@ def test_base_recipe_agent_get_tools_different_agents():
 def test_base_recipe_agent_search_method_exists():
     """Test that search method exists on recipe agents."""
     agent = AppetizerAgent()
-    
+
     assert hasattr(agent, "search")
     assert callable(agent.search)
 
 
-@patch.object(AppetizerAgent, 'run')
+@patch.object(AppetizerAgent, "run")
 def test_base_recipe_agent_search_return_type_and_structure(mock_run):
     """Test that search() returns correct type and structure."""
     mock_response = Mock()
     mock_response.text = "Recipe suggestions"
     mock_run.return_value = mock_response
-    
+
     agent = AppetizerAgent()
     preferences = {
         "number_of_guests": 6,
@@ -329,55 +335,55 @@ def test_base_recipe_agent_search_return_type_and_structure(mock_run):
         "vegetarian_count": 2,
         "allergies": ["gluten"],
     }
-    
+
     result = agent.search(preferences)
-    
+
     assert isinstance(result, dict)
     assert "category" in result
     assert "raw_response" in result
     assert "preferences_used" in result
-    
+
     assert isinstance(result["category"], str)
     assert isinstance(result["raw_response"], str)
     assert isinstance(result["preferences_used"], dict)
-    
+
     assert result["category"] == agent.CATEGORY
     assert result["raw_response"] == "Recipe suggestions"
     assert result["preferences_used"]["number_of_guests"] == 6
     assert result["preferences_used"]["has_vegetarians"] is True
-    
+
     mock_run.assert_called_once()
     call_args = mock_run.call_args
     assert call_args[1]["tool_choice"] == "required_first"
 
 
-@patch.object(MainDishAgent, 'run')
+@patch.object(MainDishAgent, "run")
 def test_base_recipe_agent_search_with_context(mock_run):
     """Test that search() accepts and uses context parameter."""
     mock_response = Mock()
     mock_response.text = "Main dish suggestions"
     mock_run.return_value = mock_response
-    
+
     agent = MainDishAgent()
     preferences = {"number_of_guests": 4}
-    
+
     result = agent.search(preferences, context="Test context")
-    
+
     assert isinstance(result, dict)
     assert result["category"] == agent.CATEGORY
-    
+
     call_args = mock_run.call_args
     prompt = call_args[0][0]
     assert "Test context" in prompt
 
 
-@patch.object(DessertAgent, 'run')
+@patch.object(DessertAgent, "run")
 def test_base_recipe_agent_search_calls_extract_and_build(mock_run):
     """Test that search() calls _extract_preferences and _build_prompt."""
     mock_response = Mock()
     mock_response.text = "Dessert suggestions"
     mock_run.return_value = mock_response
-    
+
     agent = DessertAgent()
     preferences = {
         "number_of_guests": 8,
@@ -385,14 +391,14 @@ def test_base_recipe_agent_search_calls_extract_and_build(mock_run):
         "vegan_count": 2,
         "allergies": ["nuts"],
     }
-    
+
     result = agent.search(preferences)
-    
+
     assert isinstance(result, dict)
     assert result["preferences_used"]["number_of_guests"] == 8
     assert result["preferences_used"]["has_vegans"] is True
     assert "nuts" in result["preferences_used"]["allergens"]
-    
+
     mock_run.assert_called_once()
     call_args = mock_run.call_args
     prompt = call_args[0][0]
@@ -409,7 +415,7 @@ def test_base_recipe_agent_search_all_agents():
         SecondPlateAgent(),
         DessertAgent(),
     ]
-    
+
     for agent in agents:
         assert hasattr(agent, "search")
         assert callable(agent.search)
@@ -417,4 +423,3 @@ def test_base_recipe_agent_search_all_agents():
         assert agent.COURSE_NAME is not None
         assert isinstance(agent.RECOMMENDED_COUNT, int)
         assert agent.RECOMMENDED_COUNT > 0
-

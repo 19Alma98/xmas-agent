@@ -41,7 +41,7 @@ def test_agent_info_checker_should_correctly_extract_preferences():
     assert result["preferences"]["allergies"] == ["gluten"]
     assert isinstance(result["raw_response"], str)
     assert isinstance(result["questions"], list)
-    assert "8" in result["summary"] or 'eight' in result["summary"].lower()
-    assert "2" in result["summary"] or 'two' in result["summary"].lower()
-    assert "1" in result["summary"] or 'one' in result["summary"].lower()
+    assert "8" in result["summary"] or "eight" in result["summary"].lower()
+    assert "2" in result["summary"] or "two" in result["summary"].lower()
+    assert "1" in result["summary"] or "one" in result["summary"].lower()
     assert "gluten" in result["summary"].lower()
