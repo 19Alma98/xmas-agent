@@ -365,3 +365,34 @@ class RecipeVectorStore:
                     )
         except Exception as e:
             print(f"Error clearing recipes: {e}")
+
+    def add_text_chunks(
+        self,
+        chunks: list[dict],
+    ) -> None:
+        """
+        Add text chunks with metadata directly to the vector store.
+
+        Args:
+            chunks: List of dictionaries with keys:
+                - id: unique identifier
+                - text: text content to embed
+                - metadata: dictionary with metadata (category, dietary info, etc.)
+        """
+        if not chunks:
+            return
+
+        texts = [chunk["text"] for chunk in chunks]
+        embeddings = self.embedder.embed(texts)
+
+        datapizza_chunks = []
+        for chunk_data, embedding in zip(chunks, embeddings):
+            chunk = Chunk(
+                id=chunk_data["id"],
+                text=chunk_data["text"],
+                metadata=chunk_data.get("metadata", {}),
+                embeddings=[DenseEmbedding(name=self.embedding_name, vector=embedding)],
+            )
+            datapizza_chunks.append(chunk)
+
+        self.vectorstore.add(datapizza_chunks, collection_name=self.collection_name)

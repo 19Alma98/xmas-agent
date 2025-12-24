@@ -1,11 +1,11 @@
-"""
-Recipe loader for populating the vector database.
-"""
-
 import json
 from pathlib import Path
+from uuid import uuid4
 
-from ..models.recipe import Recipe
+from datapizza.modules.parsers.docling import DoclingParser  # type: ignore
+
+from ..agents.document_parsing_agent import DocumentParsingAgent
+from ..models.recipe import DietaryTag, Recipe, RecipeCategory, RecipeDifficulty
 from .vector_store import RecipeVectorStore
 
 
@@ -88,517 +88,593 @@ class RecipeLoader:
             Number of recipes loaded
         """
         sample_recipes = [
-            # Appetizers
             {
-                "id": "app_001",
-                "name": "Bruschetta al Pomodoro",
-                "description": "Classic Italian bruschetta with fresh tomatoes, basil, and garlic on toasted bread",
-                "category": "appetizer",
+                "id": "it_app_001",
+                "name": "Antipasto Misto Italiano",
+                "description": "Classic Italian mixed appetizer platter with prosciutto, salami, cheese, olives, and roasted vegetables",
+                "category": RecipeCategory.APPETIZER.value,
                 "ingredients": [
-                    "Bread",
-                    "Tomatoes",
-                    "Fresh basil",
-                    "Garlic",
-                    "Olive oil",
-                    "Salt",
+                    "Prosciutto di Parma",
+                    "Salame",
+                    "Pecorino cheese",
+                    "Mozzarella di bufala",
+                    "Olive verdi e nere",
+                    "Peperoni arrostiti",
+                    "Carciofi sott'olio",
+                    "Pane tostato",
                 ],
                 "instructions": [
-                    "Toast bread slices until golden",
-                    "Dice tomatoes and mix with chopped basil and garlic",
-                    "Drizzle with olive oil and season with salt",
-                    "Top bread with tomato mixture",
+                    "Disponi su un piatto grande il prosciutto e il salame tagliati a fette",
+                    "Aggiungi i formaggi tagliati a cubetti",
+                    "Completa con olive, peperoni e carciofi",
+                    "Servi con pane tostato",
                 ],
                 "servings": 8,
-                "prep_time_minutes": 15,
-                "cook_time_minutes": 5,
-                "dietary_tags": ["vegan", "vegetarian"],
-                "allergens": ["gluten"],
-                "difficulty": "easy",
-                "is_christmas_traditional": False,
-            },
-            {
-                "id": "app_002",
-                "name": "Smoked Salmon Canapés",
-                "description": "Elegant canapés with smoked salmon, cream cheese, and dill",
-                "category": "appetizer",
-                "ingredients": [
-                    "Smoked salmon",
-                    "Cream cheese",
-                    "Dill",
-                    "Capers",
-                    "Crackers",
-                    "Lemon",
-                ],
-                "instructions": [
-                    "Spread cream cheese on crackers",
-                    "Top with smoked salmon",
-                    "Garnish with dill, capers, and lemon zest",
-                ],
-                "servings": 12,
                 "prep_time_minutes": 20,
                 "cook_time_minutes": 0,
                 "dietary_tags": [],
-                "allergens": ["fish", "dairy", "gluten"],
-                "difficulty": "easy",
+                "allergens": ["gluten", "dairy"],
+                "difficulty": RecipeDifficulty.EASY.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "app_003",
-                "name": "Stuffed Mushrooms",
-                "description": "Mushroom caps stuffed with herbs, breadcrumbs, and parmesan",
-                "category": "appetizer",
+                "id": "it_app_002",
+                "name": "Bruschetta al Pomodoro e Basilico",
+                "description": "Traditional Italian bruschetta with fresh tomatoes, basil, garlic, and extra virgin olive oil",
+                "category": RecipeCategory.APPETIZER.value,
                 "ingredients": [
-                    "Mushrooms",
-                    "Breadcrumbs",
-                    "Parmesan",
-                    "Garlic",
-                    "Parsley",
-                    "Butter",
+                    "Pane casereccio",
+                    "Pomodori maturi",
+                    "Aglio",
+                    "Basilico fresco",
+                    "Olio extravergine d'oliva",
+                    "Sale",
+                    "Pepe nero",
                 ],
                 "instructions": [
-                    "Remove mushroom stems and chop finely",
-                    "Mix stems with breadcrumbs, parmesan, garlic, and parsley",
-                    "Fill mushroom caps with mixture",
-                    "Bake at 180°C for 15 minutes",
+                    "Taglia il pane a fette spesse e tostalo",
+                    "Sfregare le fette con uno spicchio d'aglio",
+                    "Taglia i pomodori a cubetti e condisci con olio, sale e basilico",
+                    "Disponi il condimento sulle fette di pane",
+                ],
+                "servings": 6,
+                "prep_time_minutes": 15,
+                "cook_time_minutes": 5,
+                "dietary_tags": [DietaryTag.VEGETARIAN.value, DietaryTag.VEGAN.value],
+                "allergens": ["gluten"],
+                "difficulty": RecipeDifficulty.EASY.value,
+                "is_christmas_traditional": False,
+            },
+            {
+                "id": "it_app_003",
+                "name": "Crostini ai Funghi",
+                "description": "Toasted bread topped with sautéed mushrooms, garlic, and parsley",
+                "category": RecipeCategory.APPETIZER.value,
+                "ingredients": [
+                    "Pane casereccio",
+                    "Funghi porcini",
+                    "Aglio",
+                    "Prezzemolo",
+                    "Olio extravergine d'oliva",
+                    "Vino bianco",
+                    "Sale",
+                    "Pepe",
+                ],
+                "instructions": [
+                    "Taglia il pane a fette sottili e tostalo",
+                    "Pulisci e taglia i funghi a fettine",
+                    "Soffriggi aglio in olio, aggiungi i funghi",
+                    "Sfuma con vino bianco, aggiungi prezzemolo",
+                    "Disponi sui crostini",
                 ],
                 "servings": 8,
                 "prep_time_minutes": 20,
                 "cook_time_minutes": 15,
-                "dietary_tags": ["vegetarian"],
-                "allergens": ["gluten", "dairy"],
-                "difficulty": "easy",
-                "is_christmas_traditional": False,
-            },
-            {
-                "id": "app_004",
-                "name": "Vegan Hummus Platter",
-                "description": "Creamy homemade hummus served with fresh vegetables and pita bread",
-                "category": "appetizer",
-                "ingredients": [
-                    "Chickpeas",
-                    "Tahini",
-                    "Lemon",
-                    "Garlic",
-                    "Olive oil",
-                    "Vegetables",
-                    "Pita bread",
-                ],
-                "instructions": [
-                    "Blend chickpeas, tahini, lemon juice, and garlic",
-                    "Drizzle with olive oil",
-                    "Serve with cut vegetables and toasted pita",
-                ],
-                "servings": 10,
-                "prep_time_minutes": 15,
-                "cook_time_minutes": 0,
-                "dietary_tags": ["vegan", "vegetarian", "dairy_free"],
-                "allergens": ["sesame", "gluten"],
-                "difficulty": "easy",
-                "is_christmas_traditional": False,
-            },
-            # Main Dishes
-            {
-                "id": "main_001",
-                "name": "Traditional Christmas Lasagna",
-                "description": "Rich layered pasta with ragù, béchamel sauce, and cheese",
-                "category": "main_dish",
-                "ingredients": [
-                    "Lasagna sheets",
-                    "Ground beef",
-                    "Tomato sauce",
-                    "Béchamel",
-                    "Parmesan",
-                    "Mozzarella",
-                ],
-                "instructions": [
-                    "Prepare ragù with ground beef and tomato sauce",
-                    "Make béchamel sauce",
-                    "Layer lasagna sheets, ragù, béchamel, and cheese",
-                    "Bake at 180°C for 45 minutes",
-                ],
-                "servings": 8,
-                "prep_time_minutes": 45,
-                "cook_time_minutes": 45,
-                "dietary_tags": [],
-                "allergens": ["gluten", "dairy", "eggs"],
-                "difficulty": "medium",
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
+                "allergens": ["gluten"],
+                "difficulty": RecipeDifficulty.EASY.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "main_002",
-                "name": "Tortellini in Brodo",
-                "description": "Traditional Italian tortellini served in rich homemade broth",
-                "category": "main_dish",
-                "ingredients": ["Tortellini", "Beef broth", "Parmesan", "Parsley"],
+                "id": "it_app_004",
+                "name": "Caponata Siciliana",
+                "description": "Traditional Sicilian eggplant caponata with tomatoes, olives, capers, and celery",
+                "category": RecipeCategory.APPETIZER.value,
+                "ingredients": [
+                    "Melanzane",
+                    "Pomodori",
+                    "Cipolla",
+                    "Sedano",
+                    "Olive nere",
+                    "Capperi",
+                    "Aceto",
+                    "Zucchero",
+                    "Olio extravergine d'oliva",
+                ],
                 "instructions": [
-                    "Prepare rich beef broth",
-                    "Cook tortellini in the broth",
-                    "Serve with grated parmesan and parsley",
+                    "Taglia le melanzane a cubetti e friggi",
+                    "Soffriggi cipolla e sedano",
+                    "Aggiungi pomodori, olive e capperi",
+                    "Condisci con aceto e zucchero",
+                    "Lascia raffreddare e servi",
+                ],
+                "servings": 8,
+                "prep_time_minutes": 30,
+                "cook_time_minutes": 30,
+                "dietary_tags": [DietaryTag.VEGETARIAN.value, DietaryTag.VEGAN.value],
+                "allergens": [],
+                "difficulty": RecipeDifficulty.MEDIUM.value,
+                "is_christmas_traditional": True,
+            },
+            {
+                "id": "it_main_001",
+                "name": "Lasagne al Forno",
+                "description": "Traditional Italian baked lasagna with ragù, béchamel sauce, and Parmigiano Reggiano",
+                "category": RecipeCategory.MAIN_DISH.value,
+                "ingredients": [
+                    "Pasta per lasagne",
+                    "Ragù di carne",
+                    "Béchamel",
+                    "Parmigiano Reggiano",
+                    "Mozzarella",
+                    "Burro",
+                ],
+                "instructions": [
+                    "Prepara il ragù con carne macinata e pomodoro",
+                    "Prepara la béchamel",
+                    "Alterna strati di pasta, ragù, béchamel e formaggio",
+                    "Cuoci in forno a 180°C per 45 minuti",
+                ],
+                "servings": 8,
+                "prep_time_minutes": 60,
+                "cook_time_minutes": 45,
+                "dietary_tags": [],
+                "allergens": ["gluten", "dairy", "eggs"],
+                "difficulty": RecipeDifficulty.MEDIUM.value,
+                "is_christmas_traditional": True,
+            },
+            {
+                "id": "it_main_002",
+                "name": "Tortellini in Brodo",
+                "description": "Traditional Christmas tortellini served in rich homemade meat broth",
+                "category": RecipeCategory.MAIN_DISH.value,
+                "ingredients": [
+                    "Tortellini",
+                    "Brodo di carne",
+                    "Parmigiano Reggiano",
+                    "Prezzemolo",
+                ],
+                "instructions": [
+                    "Prepara un brodo di carne ricco",
+                    "Cuoci i tortellini nel brodo",
+                    "Servi con Parmigiano grattugiato e prezzemolo",
                 ],
                 "servings": 6,
                 "prep_time_minutes": 30,
                 "cook_time_minutes": 20,
                 "dietary_tags": [],
                 "allergens": ["gluten", "eggs", "dairy"],
-                "difficulty": "medium",
+                "difficulty": RecipeDifficulty.MEDIUM.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "main_003",
-                "name": "Vegan Mushroom Risotto",
-                "description": "Creamy risotto with mixed mushrooms and white wine",
-                "category": "main_dish",
+                "id": "it_main_003",
+                "name": "Risotto ai Porcini",
+                "description": "Creamy risotto with porcini mushrooms, white wine, and Parmigiano",
+                "category": RecipeCategory.MAIN_DISH.value,
                 "ingredients": [
-                    "Arborio rice",
-                    "Mixed mushrooms",
-                    "Vegetable broth",
-                    "White wine",
-                    "Onion",
-                    "Olive oil",
+                    "Riso Carnaroli",
+                    "Funghi porcini",
+                    "Brodo vegetale",
+                    "Vino bianco",
+                    "Cipolla",
+                    "Parmigiano Reggiano",
+                    "Burro",
+                    "Olio extravergine d'oliva",
                 ],
                 "instructions": [
-                    "Sauté onion and mushrooms",
-                    "Add rice and toast briefly",
-                    "Gradually add broth and wine while stirring",
-                    "Cook until creamy",
+                    "Soffriggi cipolla in olio e burro",
+                    "Aggiungi i funghi tagliati",
+                    "Tosta il riso, sfuma con vino",
+                    "Aggiungi brodo caldo gradualmente mescolando",
+                    "Mantecare con burro e Parmigiano",
                 ],
                 "servings": 6,
                 "prep_time_minutes": 15,
                 "cook_time_minutes": 25,
-                "dietary_tags": ["vegan", "vegetarian", "dairy_free", "gluten_free"],
-                "allergens": [],
-                "difficulty": "medium",
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
+                "allergens": ["gluten", "dairy"],
+                "difficulty": RecipeDifficulty.MEDIUM.value,
+                "is_christmas_traditional": True,
+            },
+            {
+                "id": "it_main_004",
+                "name": "Cannelloni Ricotta e Spinaci",
+                "description": "Baked pasta tubes filled with ricotta, spinach, and herbs, topped with tomato sauce",
+                "category": RecipeCategory.MAIN_DISH.value,
+                "ingredients": [
+                    "Cannelloni",
+                    "Ricotta",
+                    "Spinaci",
+                    "Parmigiano Reggiano",
+                    "Salsa di pomodoro",
+                    "Noce moscata",
+                    "Uova",
+                ],
+                "instructions": [
+                    "Cuoci gli spinaci e strizzali",
+                    "Mescola ricotta, spinaci, uova e Parmigiano",
+                    "Riempi i cannelloni",
+                    "Disponi in teglia con salsa di pomodoro",
+                    "Cuoci in forno a 180°C per 30 minuti",
+                ],
+                "servings": 6,
+                "prep_time_minutes": 40,
+                "cook_time_minutes": 30,
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
+                "allergens": ["gluten", "dairy", "eggs"],
+                "difficulty": RecipeDifficulty.MEDIUM.value,
                 "is_christmas_traditional": False,
             },
             {
-                "id": "main_004",
-                "name": "Seafood Linguine",
-                "description": "Pasta with mixed seafood in a light white wine and garlic sauce",
-                "category": "main_dish",
+                "id": "it_second_001",
+                "name": "Arrosto di Tacchino",
+                "description": "Traditional Italian roasted turkey with herbs, garlic, and white wine",
+                "category": RecipeCategory.SECOND_PLATE.value,
                 "ingredients": [
-                    "Linguine",
-                    "Mixed seafood",
-                    "Garlic",
-                    "White wine",
-                    "Cherry tomatoes",
-                    "Parsley",
+                    "Tacchino",
+                    "Rosmarino",
+                    "Salvia",
+                    "Aglio",
+                    "Vino bianco",
+                    "Burro",
+                    "Olio extravergine d'oliva",
                 ],
                 "instructions": [
-                    "Cook pasta al dente",
-                    "Sauté garlic and seafood in olive oil",
-                    "Add wine and tomatoes",
-                    "Toss with pasta and parsley",
-                ],
-                "servings": 6,
-                "prep_time_minutes": 20,
-                "cook_time_minutes": 15,
-                "dietary_tags": ["dairy_free"],
-                "allergens": ["gluten", "shellfish", "fish"],
-                "difficulty": "medium",
-                "is_christmas_traditional": True,
-            },
-            # Second Plates
-            {
-                "id": "second_001",
-                "name": "Roasted Turkey with Herbs",
-                "description": "Classic roasted turkey with rosemary, thyme, and garlic",
-                "category": "second_plate",
-                "ingredients": [
-                    "Turkey",
-                    "Rosemary",
-                    "Thyme",
-                    "Garlic",
-                    "Butter",
-                    "Lemon",
-                ],
-                "instructions": [
-                    "Season turkey with herbs and garlic",
-                    "Roast at 160°C for 3-4 hours",
-                    "Baste regularly with pan juices",
-                    "Rest before carving",
+                    "Marina il tacchino con erbe e aglio",
+                    "Rosola in padella con burro e olio",
+                    "Aggiungi vino bianco",
+                    "Cuoci in forno a 160°C per 3-4 ore",
+                    "Bagna con il fondo di cottura",
                 ],
                 "servings": 10,
                 "prep_time_minutes": 30,
                 "cook_time_minutes": 240,
-                "dietary_tags": ["gluten_free"],
-                "allergens": ["dairy"],
-                "difficulty": "hard",
+                "dietary_tags": [],
+                "allergens": [],
+                "difficulty": RecipeDifficulty.HARD.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "second_002",
-                "name": "Beef Tenderloin",
-                "description": "Perfectly roasted beef tenderloin with red wine reduction",
-                "category": "second_plate",
+                "id": "it_second_002",
+                "name": "Filetto di Manzo al Pepe Verde",
+                "description": "Beef tenderloin with green peppercorn sauce and red wine reduction",
+                "category": RecipeCategory.SECOND_PLATE.value,
                 "ingredients": [
-                    "Beef tenderloin",
-                    "Red wine",
-                    "Shallots",
-                    "Butter",
-                    "Thyme",
-                    "Garlic",
+                    "Filetto di manzo",
+                    "Pepe verde",
+                    "Vino rosso",
+                    "Burro",
+                    "Scalogno",
+                    "Brodo di carne",
+                    "Panna",
                 ],
                 "instructions": [
-                    "Sear tenderloin on all sides",
-                    "Roast at 200°C to desired doneness",
-                    "Make red wine reduction sauce",
-                    "Slice and serve with sauce",
+                    "Rosola il filetto su tutti i lati",
+                    "Cuoci in forno a 200°C al punto desiderato",
+                    "Prepara la salsa con scalogno, vino e brodo",
+                    "Aggiungi pepe verde e panna",
+                    "Servi il filetto con la salsa",
                 ],
                 "servings": 8,
                 "prep_time_minutes": 20,
                 "cook_time_minutes": 35,
-                "dietary_tags": ["gluten_free"],
+                "dietary_tags": [],
                 "allergens": ["dairy"],
-                "difficulty": "medium",
+                "difficulty": RecipeDifficulty.MEDIUM.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "second_003",
-                "name": "Baked Sea Bass",
-                "description": "Whole sea bass baked with lemon, olives, and cherry tomatoes",
-                "category": "second_plate",
+                "id": "it_second_003",
+                "name": "Branzino al Forno",
+                "description": "Whole sea bass baked with lemon, herbs, and white wine",
+                "category": RecipeCategory.SECOND_PLATE.value,
                 "ingredients": [
-                    "Sea bass",
-                    "Lemon",
-                    "Olives",
-                    "Cherry tomatoes",
-                    "Capers",
-                    "White wine",
+                    "Branzino",
+                    "Limone",
+                    "Rosmarino",
+                    "Aglio",
+                    "Vino bianco",
+                    "Olio extravergine d'oliva",
+                    "Patate",
                 ],
                 "instructions": [
-                    "Score fish and season",
-                    "Add lemon, olives, tomatoes, and capers",
-                    "Bake at 180°C for 25 minutes",
-                    "Drizzle with cooking juices",
+                    "Pulisci il pesce e incidi la pelle",
+                    "Condisci con limone, erbe e aglio",
+                    "Disponi su patate tagliate",
+                    "Cuoci in forno a 180°C per 25 minuti",
+                    "Bagna con vino bianco durante la cottura",
                 ],
                 "servings": 4,
                 "prep_time_minutes": 15,
                 "cook_time_minutes": 25,
-                "dietary_tags": ["gluten_free", "dairy_free"],
+                "dietary_tags": [],
                 "allergens": ["fish"],
-                "difficulty": "medium",
+                "difficulty": RecipeDifficulty.MEDIUM.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "second_004",
-                "name": "Vegan Wellington",
-                "description": "Mushroom and lentil wellington wrapped in flaky pastry",
-                "category": "second_plate",
+                "id": "it_second_004",
+                "name": "Costolette d'Agnello",
+                "description": "Herb-crusted lamb chops with rosemary and garlic",
+                "category": RecipeCategory.SECOND_PLATE.value,
                 "ingredients": [
-                    "Puff pastry",
-                    "Mushrooms",
-                    "Lentils",
-                    "Spinach",
-                    "Onion",
-                    "Garlic",
-                    "Walnuts",
+                    "Costolette d'agnello",
+                    "Rosmarino",
+                    "Aglio",
+                    "Olio extravergine d'oliva",
+                    "Sale",
+                    "Pepe",
                 ],
                 "instructions": [
-                    "Sauté mushrooms, onion, and garlic",
-                    "Mix with lentils, spinach, and walnuts",
-                    "Wrap in puff pastry",
-                    "Bake until golden",
+                    "Marina le costolette con olio, rosmarino e aglio",
+                    "Rosola in padella calda",
+                    "Cuoci al punto desiderato",
+                    "Lascia riposare prima di servire",
                 ],
                 "servings": 6,
-                "prep_time_minutes": 40,
-                "cook_time_minutes": 35,
-                "dietary_tags": ["vegan", "vegetarian", "dairy_free"],
-                "allergens": ["gluten", "nuts"],
-                "difficulty": "hard",
-                "is_christmas_traditional": False,
-            },
-            {
-                "id": "second_005",
-                "name": "Stuffed Bell Peppers",
-                "description": "Colorful bell peppers stuffed with rice, vegetables, and herbs",
-                "category": "second_plate",
-                "ingredients": [
-                    "Bell peppers",
-                    "Rice",
-                    "Tomatoes",
-                    "Onion",
-                    "Herbs",
-                    "Olive oil",
-                ],
-                "instructions": [
-                    "Cook rice with herbs and vegetables",
-                    "Hollow out bell peppers",
-                    "Fill with rice mixture",
-                    "Bake at 180°C for 30 minutes",
-                ],
-                "servings": 6,
-                "prep_time_minutes": 25,
-                "cook_time_minutes": 30,
-                "dietary_tags": [
-                    "vegan",
-                    "vegetarian",
-                    "gluten_free",
-                    "dairy_free",
-                    "nut_free",
-                ],
+                "prep_time_minutes": 15,
+                "cook_time_minutes": 20,
+                "dietary_tags": [],
                 "allergens": [],
-                "difficulty": "easy",
-                "is_christmas_traditional": False,
+                "difficulty": RecipeDifficulty.MEDIUM.value,
+                "is_christmas_traditional": True,
             },
-            # Desserts
             {
-                "id": "dessert_001",
+                "id": "it_dessert_001",
                 "name": "Panettone",
                 "description": "Traditional Italian Christmas sweet bread with candied fruits and raisins",
-                "category": "dessert",
+                "category": RecipeCategory.DESSERT.value,
                 "ingredients": [
-                    "Flour",
-                    "Eggs",
-                    "Butter",
-                    "Sugar",
-                    "Candied fruits",
-                    "Raisins",
-                    "Yeast",
+                    "Farina",
+                    "Uova",
+                    "Burro",
+                    "Zucchero",
+                    "Frutta candita",
+                    "Uvetta",
+                    "Lievito",
+                    "Vaniglia",
                 ],
                 "instructions": [
-                    "Prepare enriched dough with eggs and butter",
-                    "Let rise twice",
-                    "Add candied fruits and raisins",
-                    "Bake in panettone mold",
+                    "Prepara l'impasto con farina, uova, burro e zucchero",
+                    "Lascia lievitare due volte",
+                    "Aggiungi frutta candita e uvetta",
+                    "Cuoci in stampo per panettone",
+                    "Cuoci a 180°C per 50 minuti",
                 ],
                 "servings": 12,
-                "prep_time_minutes": 60,
+                "prep_time_minutes": 90,
                 "cook_time_minutes": 50,
-                "dietary_tags": ["vegetarian"],
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
                 "allergens": ["gluten", "eggs", "dairy"],
-                "difficulty": "hard",
+                "difficulty": RecipeDifficulty.HARD.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "dessert_002",
-                "name": "Tiramisu",
-                "description": "Classic Italian dessert with espresso-soaked ladyfingers and mascarpone cream",
-                "category": "dessert",
-                "ingredients": [
-                    "Ladyfingers",
-                    "Mascarpone",
-                    "Eggs",
-                    "Espresso",
-                    "Cocoa",
-                    "Sugar",
-                ],
-                "instructions": [
-                    "Make mascarpone cream with egg yolks",
-                    "Dip ladyfingers in espresso",
-                    "Layer cream and ladyfingers",
-                    "Dust with cocoa powder",
-                ],
-                "servings": 8,
-                "prep_time_minutes": 30,
-                "cook_time_minutes": 0,
-                "dietary_tags": ["vegetarian"],
-                "allergens": ["gluten", "eggs", "dairy"],
-                "difficulty": "medium",
-                "is_christmas_traditional": True,
-            },
-            {
-                "id": "dessert_003",
-                "name": "Vegan Chocolate Mousse",
-                "description": "Rich and silky chocolate mousse made with aquafaba",
-                "category": "dessert",
-                "ingredients": ["Dark chocolate", "Aquafaba", "Sugar", "Vanilla"],
-                "instructions": [
-                    "Melt dark chocolate",
-                    "Whip aquafaba to stiff peaks",
-                    "Fold chocolate into aquafaba",
-                    "Chill for 4 hours",
-                ],
-                "servings": 6,
-                "prep_time_minutes": 20,
-                "cook_time_minutes": 0,
-                "dietary_tags": ["vegan", "vegetarian", "dairy_free", "gluten_free"],
-                "allergens": [],
-                "difficulty": "medium",
-                "is_christmas_traditional": False,
-            },
-            {
-                "id": "dessert_004",
+                "id": "it_dessert_002",
                 "name": "Pandoro",
                 "description": "Star-shaped Italian Christmas cake dusted with powdered sugar",
-                "category": "dessert",
+                "category": RecipeCategory.DESSERT.value,
                 "ingredients": [
-                    "Flour",
-                    "Eggs",
-                    "Butter",
-                    "Sugar",
-                    "Vanilla",
-                    "Yeast",
-                    "Powdered sugar",
+                    "Farina",
+                    "Uova",
+                    "Burro",
+                    "Zucchero",
+                    "Vaniglia",
+                    "Lievito",
+                    "Zucchero a velo",
                 ],
                 "instructions": [
-                    "Prepare rich dough with lots of butter",
-                    "Let rise multiple times",
-                    "Bake in star-shaped mold",
-                    "Dust generously with powdered sugar",
+                    "Prepara l'impasto ricco con molto burro",
+                    "Lascia lievitare più volte",
+                    "Cuoci in stampo a stella",
+                    "Cuoci a 180°C per 45 minuti",
+                    "Spolvera con zucchero a velo",
                 ],
                 "servings": 10,
                 "prep_time_minutes": 90,
                 "cook_time_minutes": 45,
-                "dietary_tags": ["vegetarian"],
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
                 "allergens": ["gluten", "eggs", "dairy"],
-                "difficulty": "hard",
+                "difficulty": RecipeDifficulty.HARD.value,
                 "is_christmas_traditional": True,
             },
             {
-                "id": "dessert_005",
-                "name": "Fruit Tart",
-                "description": "Buttery tart shell filled with pastry cream and fresh seasonal fruits",
-                "category": "dessert",
+                "id": "it_dessert_003",
+                "name": "Tiramisù",
+                "description": "Classic Italian dessert with espresso-soaked ladyfingers and mascarpone cream",
+                "category": RecipeCategory.DESSERT.value,
                 "ingredients": [
-                    "Flour",
-                    "Butter",
-                    "Eggs",
-                    "Sugar",
-                    "Milk",
-                    "Vanilla",
-                    "Fresh fruits",
+                    "Savoiardi",
+                    "Mascarpone",
+                    "Uova",
+                    "Caffè espresso",
+                    "Cacao amaro",
+                    "Zucchero",
                 ],
                 "instructions": [
-                    "Make shortcrust pastry and blind bake",
-                    "Prepare vanilla pastry cream",
-                    "Fill tart shell with cream",
-                    "Arrange fresh fruits on top",
+                    "Prepara la crema con mascarpone e tuorli",
+                    "Monta gli albumi e incorpora",
+                    "Bagna i savoiardi nel caffè",
+                    "Alterna strati di savoiardi e crema",
+                    "Spolvera con cacao",
                 ],
                 "servings": 8,
-                "prep_time_minutes": 45,
-                "cook_time_minutes": 25,
-                "dietary_tags": ["vegetarian"],
+                "prep_time_minutes": 30,
+                "cook_time_minutes": 0,
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
                 "allergens": ["gluten", "eggs", "dairy"],
-                "difficulty": "medium",
-                "is_christmas_traditional": False,
+                "difficulty": RecipeDifficulty.MEDIUM.value,
+                "is_christmas_traditional": True,
             },
             {
-                "id": "dessert_006",
-                "name": "Gluten-Free Almond Cake",
-                "description": "Moist almond cake made with almond flour and orange zest",
-                "category": "dessert",
+                "id": "it_dessert_004",
+                "name": "Struffoli",
+                "description": "Traditional Neapolitan Christmas honey balls",
+                "category": RecipeCategory.DESSERT.value,
                 "ingredients": [
-                    "Almond flour",
-                    "Eggs",
-                    "Sugar",
-                    "Orange zest",
-                    "Butter",
-                    "Baking powder",
+                    "Farina",
+                    "Uova",
+                    "Burro",
+                    "Miele",
+                    "Canditi",
+                    "Zucchero a velo",
                 ],
                 "instructions": [
-                    "Beat eggs and sugar until fluffy",
-                    "Fold in almond flour and orange zest",
-                    "Pour into cake pan",
-                    "Bake at 170°C for 35 minutes",
+                    "Prepara l'impasto con farina, uova e burro",
+                    "Forma piccole palline",
+                    "Friggi le palline",
+                    "Condisci con miele caldo",
+                    "Decora con canditi e zucchero a velo",
                 ],
-                "servings": 8,
-                "prep_time_minutes": 20,
-                "cook_time_minutes": 35,
-                "dietary_tags": ["vegetarian", "gluten_free"],
-                "allergens": ["eggs", "dairy", "nuts"],
-                "difficulty": "easy",
-                "is_christmas_traditional": False,
+                "servings": 10,
+                "prep_time_minutes": 60,
+                "cook_time_minutes": 30,
+                "dietary_tags": [DietaryTag.VEGETARIAN.value],
+                "allergens": ["gluten", "eggs", "dairy"],
+                "difficulty": RecipeDifficulty.HARD.value,
+                "is_christmas_traditional": True,
             },
         ]
 
         return self.load_from_dict_list(sample_recipes)
+
+    def load_from_pdf(
+        self,
+        file_path: str,
+        api_key: str | None = None,
+        provider: str | None = None,
+    ) -> int:
+        """
+        Load recipes from a PDF file using datapizza AI DoclingParser and DocumentParsingAgent.
+        Extracts text from PDF, uses AI agent to extract recipe information,
+        and stores as text chunks with metadata in the vector store.
+
+        Args:
+            file_path: Path to the PDF file
+            api_key: OpenAI API key for the parsing agent (optional)
+            provider: LLM provider override ("openai" or "ollama")
+
+        Returns:
+            Number of recipes loaded
+
+        Raises:
+            FileNotFoundError: If PDF file doesn't exist
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"PDF file not found: {file_path}")
+
+        try:
+            parser = DoclingParser()
+            document_node = parser.parse(str(path))
+            full_text = self._extract_text_from_document_node(document_node)
+        except Exception as e:
+            raise ValueError(f"Error reading PDF: {e}") from e
+
+        parsing_agent = DocumentParsingAgent(api_key=api_key, provider=provider)
+        extracted_recipes = parsing_agent.extract_recipes(full_text)
+
+        chunks = []
+        for recipe_data in extracted_recipes:
+            recipe_text = self._recipe_dict_to_text(recipe_data)
+
+            metadata = {
+                "source": "pdf",
+                "source_file": str(path.name),
+                "category": recipe_data.get("category", "main_dish"),
+                "is_christmas_traditional": recipe_data.get(
+                    "is_christmas_traditional", True
+                ),
+                "difficulty": recipe_data.get("difficulty", "medium"),
+                "servings": recipe_data.get("servings", 4),
+                "prep_time_minutes": recipe_data.get("prep_time_minutes"),
+                "cook_time_minutes": recipe_data.get("cook_time_minutes"),
+                "dietary_tags": json.dumps(recipe_data.get("dietary_tags", [])),
+                "allergens": json.dumps(recipe_data.get("allergens", [])),
+                "recipe_name": recipe_data.get("name", "Unknown Recipe"),
+                "recipe_json": json.dumps(recipe_data),
+            }
+
+            dietary_tags = recipe_data.get("dietary_tags", [])
+            metadata["is_vegan"] = "vegan" in dietary_tags
+            metadata["is_vegetarian"] = "vegetarian" in dietary_tags
+            metadata["is_gluten_free"] = "gluten_free" in dietary_tags
+            metadata["is_dairy_free"] = "dairy_free" in dietary_tags
+            metadata["is_nut_free"] = "nut_free" in dietary_tags
+
+            chunks.append(
+                {
+                    "id": f"pdf_{uuid4().hex[:12]}_{recipe_data.get('name', 'recipe').lower().replace(' ', '_')[:20]}",
+                    "text": recipe_text,
+                    "metadata": metadata,
+                }
+            )
+
+        if chunks:
+            self.vector_store.add_text_chunks(chunks)
+
+        return len(chunks)
+
+    def _recipe_dict_to_text(self, recipe_data: dict) -> str:
+        """
+        Convert a recipe dictionary to a searchable text representation.
+
+        Args:
+            recipe_data: Dictionary with recipe information
+
+        Returns:
+            Formatted text string
+        """
+        name = recipe_data.get("name", "Unknown Recipe")
+        description = recipe_data.get("description", "")
+        category = recipe_data.get("category", "main_dish")
+        ingredients = recipe_data.get("ingredients", [])
+        instructions = recipe_data.get("instructions", [])
+        dietary_tags = recipe_data.get("dietary_tags", [])
+
+        dietary_text = ", ".join(dietary_tags) if dietary_tags else "no special diet"
+        ingredients_text = ", ".join(ingredients) if ingredients else "See recipe"
+        instructions_text = " ".join(instructions) if instructions else "See recipe"
+
+        return (
+            f"{name}. {description}. "
+            f"Category: {category}. "
+            f"Diet: {dietary_text}. "
+            f"Ingredients: {ingredients_text}. "
+            f"Instructions: {instructions_text}"
+        )
+
+    def _extract_text_from_document_node(self, node) -> str:
+        """
+        Extract text content from a datapizza document node.
+        Recursively traverses the document structure to collect all text.
+
+        Args:
+            node: Document node from DoclingParser
+
+        Returns:
+            Extracted text content
+        """
+        text_parts = []
+
+        if hasattr(node, "content") and node.content:
+            text_parts.append(str(node.content))
+
+        if hasattr(node, "children") and node.children:
+            for child in node.children:
+                child_text = self._extract_text_from_document_node(child)
+                if child_text:
+                    text_parts.append(child_text)
+
+        return "\n".join(text_parts)
