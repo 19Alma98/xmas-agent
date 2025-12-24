@@ -63,12 +63,26 @@ class BaseRecipeAgent(Agent):
         return self.TOOLS
 
     def _extract_preferences(self, preferences: dict[str, Any]) -> dict[str, Any]:
+        allergies = preferences.get("allergies", [])
+        custom_allergies = preferences.get("custom_allergies", [])
+        if isinstance(allergies, str):
+            if not isinstance(custom_allergies, str):
+                if isinstance(custom_allergies, list):
+                    custom_allergies = ', '.join(custom_allergies)
+                else: 
+                    custom_allergies = ""
+        elif isinstance(allergies, list):
+            if not isinstance(custom_allergies, list):
+                if isinstance(custom_allergies, str):
+                    custom_allergies = [custom_allergies]
+                else: 
+                    custom_allergies = []
+
         return {
             "has_vegans": preferences.get("has_vegans", False),
             "has_vegetarians": preferences.get("has_vegetarians", False),
             "prefer_traditional": preferences.get("prefer_traditional", True),
-            "allergens": preferences.get("allergies", [])
-            + preferences.get("custom_allergies", []),
+            "allergens": allergies + custom_allergies,
             "number_of_guests": preferences.get("number_of_guests", "unknown"),
             "vegan_count": preferences.get("vegan_count", 0),
             "vegetarian_count": preferences.get("vegetarian_count", 0),
