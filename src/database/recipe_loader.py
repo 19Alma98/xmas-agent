@@ -89,7 +89,7 @@ class RecipeLoader:
         """
         sample_recipes = [
             {
-                "id": "it_app_001",
+                "id": "76984818-3c40-43b0-a5ab-1d28cb1e4669",
                 "name": "Antipasto Misto Italiano",
                 "description": "Classic Italian mixed appetizer platter with prosciutto, salami, cheese, olives, and roasted vegetables",
                 "category": RecipeCategory.APPETIZER.value,
@@ -118,7 +118,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_app_002",
+                "id": "b24512c9-cf92-43e3-ba5a-bbba6928a030",
                 "name": "Bruschetta al Pomodoro e Basilico",
                 "description": "Traditional Italian bruschetta with fresh tomatoes, basil, garlic, and extra virgin olive oil",
                 "category": RecipeCategory.APPETIZER.value,
@@ -146,7 +146,7 @@ class RecipeLoader:
                 "is_christmas_traditional": False,
             },
             {
-                "id": "it_app_003",
+                "id": "b63125fb-1f63-4a96-a51e-c70274e4a501",
                 "name": "Crostini ai Funghi",
                 "description": "Toasted bread topped with sautéed mushrooms, garlic, and parsley",
                 "category": RecipeCategory.APPETIZER.value,
@@ -176,7 +176,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_app_004",
+                "id": "6238f9ed-f384-4067-b989-0f8b8d96218a",
                 "name": "Caponata Siciliana",
                 "description": "Traditional Sicilian eggplant caponata with tomatoes, olives, capers, and celery",
                 "category": RecipeCategory.APPETIZER.value,
@@ -207,7 +207,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_main_001",
+                "id": "a48097e8-0745-494c-b786-af773d6bf50c",
                 "name": "Lasagne al Forno",
                 "description": "Traditional Italian baked lasagna with ragù, béchamel sauce, and Parmigiano Reggiano",
                 "category": RecipeCategory.MAIN_DISH.value,
@@ -234,7 +234,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_main_002",
+                "id": "02395363-685e-4b26-ad92-d0b854ef4a3f",
                 "name": "Tortellini in Brodo",
                 "description": "Traditional Christmas tortellini served in rich homemade meat broth",
                 "category": RecipeCategory.MAIN_DISH.value,
@@ -258,7 +258,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_main_003",
+                "id": "c71715ee-8f62-4945-950f-0516687413a9",
                 "name": "Risotto ai Porcini",
                 "description": "Creamy risotto with porcini mushrooms, white wine, and Parmigiano",
                 "category": RecipeCategory.MAIN_DISH.value,
@@ -288,7 +288,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_main_004",
+                "id": "780e907c-d2b7-4167-9549-8f488bf0bdbb",
                 "name": "Cannelloni Ricotta e Spinaci",
                 "description": "Baked pasta tubes filled with ricotta, spinach, and herbs, topped with tomato sauce",
                 "category": RecipeCategory.MAIN_DISH.value,
@@ -317,7 +317,7 @@ class RecipeLoader:
                 "is_christmas_traditional": False,
             },
             {
-                "id": "it_second_001",
+                "id": "8d35380e-92dd-4bc6-b82d-3b207cb350e5",
                 "name": "Arrosto di Tacchino",
                 "description": "Traditional Italian roasted turkey with herbs, garlic, and white wine",
                 "category": RecipeCategory.SECOND_PLATE.value,
@@ -346,7 +346,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_second_002",
+                "id": "7922a9e7-d10b-4ce1-9517-ccb91de2588b",
                 "name": "Filetto di Manzo al Pepe Verde",
                 "description": "Beef tenderloin with green peppercorn sauce and red wine reduction",
                 "category": RecipeCategory.SECOND_PLATE.value,
@@ -375,7 +375,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_second_003",
+                "id": "fa29851e-511e-4913-a7c1-c9241265ff0b",
                 "name": "Branzino al Forno",
                 "description": "Whole sea bass baked with lemon, herbs, and white wine",
                 "category": RecipeCategory.SECOND_PLATE.value,
@@ -404,7 +404,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_second_004",
+                "id": "abeb4cbe-19ca-409e-83e2-65fb8aba30d6",
                 "name": "Costolette d'Agnello",
                 "description": "Herb-crusted lamb chops with rosemary and garlic",
                 "category": RecipeCategory.SECOND_PLATE.value,
@@ -431,7 +431,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_dessert_001",
+                "id": "114f09a6-31dc-4cb2-ab4b-462d9183025f",
                 "name": "Panettone",
                 "description": "Traditional Italian Christmas sweet bread with candied fruits and raisins",
                 "category": RecipeCategory.DESSERT.value,
@@ -461,7 +461,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_dessert_002",
+                "id": "cdbb7641-9fc6-4f80-86d9-02c63c17e3c7",
                 "name": "Pandoro",
                 "description": "Star-shaped Italian Christmas cake dusted with powdered sugar",
                 "category": RecipeCategory.DESSERT.value,
@@ -490,7 +490,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_dessert_003",
+                "id": "68a21cf1-8bfe-42a4-9907-f074411d926f",
                 "name": "Tiramisù",
                 "description": "Classic Italian dessert with espresso-soaked ladyfingers and mascarpone cream",
                 "category": RecipeCategory.DESSERT.value,
@@ -518,7 +518,7 @@ class RecipeLoader:
                 "is_christmas_traditional": True,
             },
             {
-                "id": "it_dessert_004",
+                "id": "10066f4c-812e-4c98-a4b2-5cd5298b43dc",
                 "name": "Struffoli",
                 "description": "Traditional Neapolitan Christmas honey balls",
                 "category": RecipeCategory.DESSERT.value,
